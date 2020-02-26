@@ -82,7 +82,7 @@ class MAR(object):
 
 
     def loadfile(self):
-        self.body = pd.read_csv("../workspace/data/" + str(self.filename),encoding='latin-1')
+        self.body = pd.read_csv(os.getcwd() + "/workspace/data/" + str(self.filename),encoding='latin-1')
         fields = ["Document Title", "Abstract", "Year", "PDF Link"]
         columns = self.body.columns
         n = len(self.body)
@@ -337,13 +337,15 @@ class MAR(object):
                 train_dist=-train_dist
             negs_sel = np.argsort(train_dist)[::-1][:len(left)]
             sample = list(left) + list(np.array(all_neg)[negs_sel])
+            #use the same
             clf.fit(self.csr_mat[sample], labels[sample])
-        elif pne:
+        elif pne:   #presumptive non- relevant example == PRESUME
             train_dist = clf.decision_function(self.csr_mat[unlabeled])
             pos_at = list(clf.classes_).index("yes")
             if pos_at:
                 train_dist = -train_dist
             unlabel_sel = np.argsort(train_dist)[::-1][:int(len(unlabeled) / 2)]
+           # use all of the labeled ones and half of the most certain unlabeled one (prob close to 0)
             sample = list(decayed) + list(np.array(unlabeled)[unlabel_sel])
             clf.fit(self.csr_mat[sample], labels[sample])
 
