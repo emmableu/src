@@ -63,7 +63,7 @@ class Game(object):
         if "code" not in columns:
             self.body["code"] = ["undetermined"]*n
         if "time" not in columns:
-            self.body["time"] = [0]*n
+            self.body["time"] = [0.00]*n
         if "fixed" not in columns:
             self.body["fixed"] = [0]*n
 
@@ -452,7 +452,7 @@ class Game(object):
 
 
     ## Plot ##
-    def plot(self):
+    def plot(self, path, show = False):
         font = {'family': 'normal',
                 'weight': 'bold',
                 'size': 20}
@@ -466,6 +466,8 @@ class Game(object):
         fig = plt.figure()
         order = np.argsort(np.array(self.body['time'])[self.labeled])
         seq = np.array(self.body['code'])[np.array(self.labeled)[order]]
+        # order = np.argsort(np.array(m.body['time'])[m.labeled])
+        # seq = np.array(m.body['code'])[np.array(m.labeled)[order]]
         counter = 0
         rec = [0]
         for s in seq:
@@ -482,7 +484,9 @@ class Game(object):
         # for file in os.listdir(dir):
         #     os.remove(os.path.join(dir, file))
 
-        plt.savefig("/Users/wwang33/Documents/IJAIED20/src/src/static/image/" + name)
+        plt.savefig(path + name)
+        if show:
+            plt.show()
         plt.close(fig)
         return name
 
