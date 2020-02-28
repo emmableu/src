@@ -229,29 +229,20 @@ class Game(object):
 
 
 
-    def most_pole_train(self, pne = True, weighting = True):
+    def fool_proof_train(self, pne = True, weighting = True):
         clf = svm.SVC(kernel='rbf', probability=True, class_weight='balanced')
         poses = np.where(np.array(self.body['code']) == "yes")[0]
         negs = np.where(np.array(self.body['code']) == "no")[0]
         left = poses
         decayed = list(left) + list(negs)
-        unlabeled = np.where(np.array(self.body['code']) == "undetermined")[0]
-        all_neg=list(negs)+list(unlabeled)
+        labels=np.array([x if x!='undetermined' else 'no' for x in self.body['code']])
 
-        try:
-            unlabeled = np.random.choice(unlabeled, size=np.max((len(decayed)//2, len(left), self.atleast)),
+        if len(list(negs)) == 0:
+            unlabeled = np.where(np.array(self.body['code']) == "undetermined")[0]
+            unlabeled_insert = np.random.choice(unlabeled, size=1,
                                          replace=False)
-        except:
-            pass
-        labels = np.array([x if x != 'undetermined' else 'no' for x in self.body['code']])
-        train_dist = clf.decision_function(self.csr_mat[all_neg])
-        pos_at = list(clf.classes_).index("yes")
-        if pos_at:
-            train_dist = -train_dist
-        negs_sel = np.argsort(train_dist)[::-1][:len(left)]
-        sample = list(left) + list(np.array(all_neg)[negs_sel])
-        # use the same
-        clf.fit(self.csr_mat[sample], labels[sample])
+            decayed =list(decayed)+list(unlabeled_insert)
+        clf.fit(self.csr_mat[decayed], labels[decayed])
 
 
         uncertain_id, uncertain_prob = self.uncertain(clf)

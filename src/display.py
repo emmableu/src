@@ -32,7 +32,6 @@ def get_summary(label_name, total, thres, target_recall):
 def plot_all(total, thres,training_method = "", specified_info = ""):
     print("total = "+  str(total)  +  ", thres = " + str(thres) + "  " + training_method + "  " + specified_info)
     all_repetitions = 10
-
     fig = plt.figure(figsize=(24, 24))
     gs = fig.add_gridspec(3, 3)
 
@@ -61,7 +60,11 @@ def plot_all(total, thres,training_method = "", specified_info = ""):
             baseline_y.append(number * total_pos/total)
             this_sum = 0
             for iteration_item in range(all_repetitions):
-                this_sum += get_x_y_for_plot(all_simulation[iteration_item])[1][number]
+                try:
+                    this_sum += get_x_y_for_plot(all_simulation[iteration_item])[1][number]
+                except:
+                    print("error:  this_sum += get_x_y_for_plot(all_simulation[iteration_item])[1][number]")
+                    this_sum+= 1
             average_y.append(this_sum/all_repetitions)
             if number <= total_pos:
                 best_y.append(number)

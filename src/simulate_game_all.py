@@ -67,7 +67,9 @@ def simulate_10_times_to_get_all(label_name,total, thres = -1, training_method =
         read = read.create(data_path)
         read.enable_est = False
         if thres == -1:
-            thres = read.est_num//2
+            real_thres = read.est_num//2
+        else:
+            real_thres = thres
         all_simulation.append(read)
         count = 0
         for j in range(total//read.step):
@@ -81,13 +83,15 @@ def simulate_10_times_to_get_all(label_name,total, thres = -1, training_method =
                 for id in read.start_as_1_pos():
                     read.code(id, read.body["label"][id])
             else:
+                if training_method == "fool_proof":
+                    uncertain, uncertain_proba, certain, certain_proba, _ = read.fool_proof_train(weighting=True, pne=True)
                 if training_method == "no_pole":
                     uncertain, uncertain_proba, certain, certain_proba, _ = read.no_pole_train(weighting=True, pne=True)
                 elif training_method == 'most_pole':
                     uncertain, uncertain_proba, certain, certain_proba, _ = read.train(pne=False, weighting=True)
                 else:
                     uncertain, uncertain_proba, certain, certain_proba, _ = read.train(weighting=True, pne=True)
-                if pos <= thres:
+                if pos <= real_thres:
                     for id in uncertain:
                         read.code(id, read.body["label"][id])
                 else:
@@ -96,7 +100,7 @@ def simulate_10_times_to_get_all(label_name,total, thres = -1, training_method =
         read.count = count
         save_pickle(all_simulation, specified_info + "_" + training_method + '/all_simulation_' + label_name,
                     '/Users/wwang33/Documents/IJAIED20/src/workspace/data/game_labels_'+str(total),
-                    'simulation_'+ str(thres) +"_"+ "all")
+                    'simulation_' + str(thres) + "_" + "all")
 
 
 
@@ -108,7 +112,7 @@ if __name__ == "__main__":
 
     label_name_s = ['keymove', 'jump', 'costopall', 'wrap', 'cochangescore', 'movetomouse','moveanimate']
     for label_name in label_name_s:
-        simulate_10_times_to_get_all(label_name,total, thres, "most_pole", "RBF_kernel_same_as_aggresive_undersampling")
+        simulate_10_times_to_get_all(label_name,total, thres, "fool_proof", "RBF_kernel_basic_train")
         # simulate_10_times_using_weighted_train(label_name,total, thres)
 
 
