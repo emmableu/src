@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 import time
 import os
 import pandas as pd
+import numpy as np
+from sklearn.manifold import TSNE
 
 class Game(object):
     def __init__(self):

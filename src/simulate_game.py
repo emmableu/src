@@ -98,7 +98,7 @@ def simulate_30_times(label_name,total, target_recall = 0.7, thres = 10):
 
 if __name__ == "__main__":
     total = 186
-    target_recall = 0.95
+    target_recall = 1
     thres = 10
     label_name_s = ['keymove', 'jump', 'costopall', 'wrap', 'cochangescore', 'movetomouse','moveanimate']
     for label_name in label_name_s:

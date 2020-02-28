@@ -1,5 +1,8 @@
+*/data/*
 .idea/
+*.pkl
 
+*/workspace/*
 # Created by https://www.gitignore.io/api/macos,linux,django,python,pycharm
 
 ### Django ###
@@ -10,7 +13,7 @@ __pycache__/
 local_settings.py
 db.sqlite3
 media
-
+data/*
 ### Linux ###
 *~
 
