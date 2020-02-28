@@ -19,7 +19,7 @@ from sklearn.manifold import TSNE
 class Game(object):
     def __init__(self):
         self.type = "game"
-        self.step = 1
+        self.step = 10
         self.enough = 10
 
     def create(self,filename):
@@ -204,6 +204,61 @@ class Game(object):
         return esty, pre
 
 
+    def no_pole_train(self, pne = True, weighting = True):
+        clf = svm.SVC(kernel='rbf', probability=True, class_weight='balanced')
+        poses = np.where(np.array(self.body['code']) == "yes")[0]
+        negs = np.where(np.array(self.body['code']) == "no")[0]
+        left = poses
+        decayed = list(left) + list(negs)
+        unlabeled = np.where(np.array(self.body['code']) == "undetermined")[0]
+        try:
+            unlabeled = np.random.choice(unlabeled, size=np.max((len(decayed)//2, len(left), self.atleast)),
+                                         replace=False)
+        except:
+            pass
+
+        labels = np.array([x if x != 'undetermined' else 'no' for x in self.body['code']])
+        sample = list(decayed) + list(unlabeled)
+        clf.fit(self.csr_mat[sample], labels[sample])
+
+        uncertain_id, uncertain_prob = self.uncertain(clf)
+        certain_id, certain_prob = self.certain(clf)
+
+        return uncertain_id, uncertain_prob, certain_id, certain_prob, clf
+
+
+
+
+    def most_pole_train(self, pne = True, weighting = True):
+        clf = svm.SVC(kernel='rbf', probability=True, class_weight='balanced')
+        poses = np.where(np.array(self.body['code']) == "yes")[0]
+        negs = np.where(np.array(self.body['code']) == "no")[0]
+        left = poses
+        decayed = list(left) + list(negs)
+        unlabeled = np.where(np.array(self.body['code']) == "undetermined")[0]
+        all_neg=list(negs)+list(unlabeled)
+
+        try:
+            unlabeled = np.random.choice(unlabeled, size=np.max((len(decayed)//2, len(left), self.atleast)),
+                                         replace=False)
+        except:
+            pass
+        labels = np.array([x if x != 'undetermined' else 'no' for x in self.body['code']])
+        train_dist = clf.decision_function(self.csr_mat[all_neg])
+        pos_at = list(clf.classes_).index("yes")
+        if pos_at:
+            train_dist = -train_dist
+        negs_sel = np.argsort(train_dist)[::-1][:len(left)]
+        sample = list(left) + list(np.array(all_neg)[negs_sel])
+        # use the same
+        clf.fit(self.csr_mat[sample], labels[sample])
+
+
+        uncertain_id, uncertain_prob = self.uncertain(clf)
+        certain_id, certain_prob = self.certain(clf)
+
+        return uncertain_id, uncertain_prob, certain_id, certain_prob, clf
+
 
 
     ## Train model ##
@@ -220,9 +275,9 @@ class Game(object):
             unlabeled = np.random.choice(unlabeled,size=np.max((len(decayed),2*len(left),self.atleast)),replace=False)
         except:
             pass
-
-        if not pne:
-            unlabeled=[]
+        #
+        # if not pne:
+        #     unlabeled=[]
 
         labels=np.array([x if x!='undetermined' else 'no' for x in self.body['code']])
         all_neg=list(negs)+list(unlabeled)
@@ -428,9 +483,14 @@ class Game(object):
 
     def start_as_1_pos(self):
         r = self.random()
-        while self.body.label[r].values == 'no':
+        while True:
+            for ele in r:
+                if self.body.label[ele] == 'yes':
+                    return [ele]
             r = self.random()
-        return r
+
+
+
 
 
 

@@ -57,18 +57,20 @@ def save_pickle(obj, name, dir, sub_dir):
     with open(pickle_dir + '/' + name + '.pkl', 'wb') as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
 
-def simulate_30_times_to_get_all(label_name,total, thres = 0):
+def simulate_10_times_to_get_all(label_name,total, thres = -1, training_method = "", specified_info = ""):
     data_path='game_labels_'+ str(total) + '/' + label_name + '.csv'
     # target_recall = 0.7
-    # thres = 10
+    all_repetitions = 10
     all_simulation = []
-    for i in range(30):
+    for i in range(all_repetitions):
         read = Game()
         read = read.create(data_path)
         read.enable_est = False
+        if thres == -1:
+            thres = read.est_num//2
         all_simulation.append(read)
         count = 0
-        for j in range(total):
+        for j in range(total//read.step):
             pos, neg, total_real = read.get_numbers()
             if total_real != total:
                 print("wrong! total_real != total")
@@ -79,7 +81,12 @@ def simulate_30_times_to_get_all(label_name,total, thres = 0):
                 for id in read.start_as_1_pos():
                     read.code(id, read.body["label"][id])
             else:
-                uncertain, uncertain_proba, certain, certain_proba, _ = read.train(weighting=True, pne=True)
+                if training_method == "no_pole":
+                    uncertain, uncertain_proba, certain, certain_proba, _ = read.no_pole_train(weighting=True, pne=True)
+                elif training_method == 'most_pole':
+                    uncertain, uncertain_proba, certain, certain_proba, _ = read.train(pne=False, weighting=True)
+                else:
+                    uncertain, uncertain_proba, certain, certain_proba, _ = read.train(weighting=True, pne=True)
                 if pos <= thres:
                     for id in uncertain:
                         read.code(id, read.body["label"][id])
@@ -87,17 +94,22 @@ def simulate_30_times_to_get_all(label_name,total, thres = 0):
                     for id in certain:
                         read.code(id, read.body["label"][id])
         read.count = count
-        save_pickle(all_simulation, 'all_simulation_' + label_name,
+        save_pickle(all_simulation, specified_info + "_" + training_method + '/all_simulation_' + label_name,
                     '/Users/wwang33/Documents/IJAIED20/src/workspace/data/game_labels_'+str(total),
                     'simulation_'+ str(thres) +"_"+ "all")
 
 
+
+
+
 if __name__ == "__main__":
-    total = 186
+    total = 415
     thres = 0
+
     label_name_s = ['keymove', 'jump', 'costopall', 'wrap', 'cochangescore', 'movetomouse','moveanimate']
     for label_name in label_name_s:
-        simulate_30_times_to_get_all(label_name,total, thres)
+        simulate_10_times_to_get_all(label_name,total, thres, "most_pole", "RBF_kernel_same_as_aggresive_undersampling")
+        # simulate_10_times_using_weighted_train(label_name,total, thres)
 
 
 
